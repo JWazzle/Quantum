@@ -35,8 +35,11 @@ namespace MITRE.QSD.L02 {
         // a double for floating-point arithmetic. Q# won't let you do
         // arithmetic between Doubles and Ints directly.
 
-        // TODO
-        fail "Not implemented.";
+        let length = Length(qubits);
+        for i in 0 .. length - 1{
+            Ry(IntAsDouble(i)*PI()/12.0, qubits[i]);
+        }
+
     }
 
 
@@ -67,8 +70,17 @@ namespace MITRE.QSD.L02 {
         // operator, or append each Int to the array as you go. Use whichever
         // method you prefer.
 
-        // TODO
-        fail "Not implemented.";
+        let length = Length(qubits);
+        mutable intArray = [0, size=length];
+        for i in 0 .. length - 1{
+            if (M(qubits[i]) == One){
+                set intArray w/= i <- 1;
+            }
+            else {
+                set intArray w/= i <- 0;
+            }
+        }
+        return intArray;
     }
 
     /// # Summary
@@ -91,8 +103,13 @@ namespace MITRE.QSD.L02 {
     /// register is in a combination of all possible measurement outcomes, and
     /// each superposition term has an equal amplitude to the others.
     operation E03_PrepareUniform (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // let length = Length(register);
+        // for i in 0 .. length - 1{
+        //     H(register[i]);
+        // }
+
+        // built in function
+        ApplyToEach(H, register);
     }
 
     /// # Summary
@@ -115,7 +132,8 @@ namespace MITRE.QSD.L02 {
     /// state and tests your understanding of using integers for register
     /// values.
     operation E04_PhaseFlipOddTerms (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        let length = Length(register);
+        // only need to flip the last Qubit (LSB or maybe LSQ i suppose to shift odd phases)
+        Z(register[length-1]);
     }
 }
