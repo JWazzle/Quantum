@@ -6,6 +6,7 @@
 
 namespace MITRE.QSD.L05 {
 
+    open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -74,8 +75,7 @@ namespace MITRE.QSD.L05 {
         // same effect as not flipping it at all. Phase-flipping it three
         // times will have the same effect as only flipping it once, etc.
 
-        // TODO
-        fail "Not implemented.";
+        ApplyToEach(CZ(target, _), input);
     }
 
 
@@ -113,8 +113,8 @@ namespace MITRE.QSD.L05 {
         input : Qubit[],
         target : Qubit
     ) : Unit {
-        // TODO
-        fail "Not implemented.";
+        CZ(input[firstIndex], target);
+        CZ(input[secondIndex], target);
     }
 
 
@@ -156,9 +156,19 @@ namespace MITRE.QSD.L05 {
         //
         // Note: Remember to put the input and target in the correct states
         // before running the oracle!
+        mutable constant = true;
+        use (input, target) = (Qubit[inputLength], Qubit());
+        ApplyToEach(H, input);
+        X(target);
+        oracle(input, target);
+        ApplyToEach(H, input);
+        if (not CheckAllZero(input)) {
+            set constant = false;
+        }
 
-        // TODO
-        fail "Not implemented.";
+        ResetAll(input);
+        Reset(target);
+        return constant;
     }
 
 
@@ -190,7 +200,12 @@ namespace MITRE.QSD.L05 {
         input : Qubit[],
         target : Qubit
     ) : Unit {
-        fail "Not implemented.";
+        mutable result = 0;
+        for i in 0 .. Length(s) - 1 {
+            if (s[i]) {
+                CZ(target, input[i]);
+            }
+        }
     }
 
 
@@ -218,6 +233,23 @@ namespace MITRE.QSD.L05 {
         inputLength : Int,
         oracle : ((Qubit[], Qubit) => Unit)
     ) : Bool[] {
-        fail "Not implemented.";
+        mutable boolArray = [false, size=0];
+        use (input, target) = (Qubit[inputLength], Qubit());
+        ApplyToEach(H, input);
+        X(target);
+        oracle(input, target);
+        ApplyToEach(H, input);
+        for i in 0 .. inputLength - 1 {
+            if (CheckZero(input[i])) {
+                set boolArray += [false];
+            }
+            else{
+                set boolArray += [true];
+            }
+        }
+
+        ResetAll(input);
+        Reset(target);
+        return boolArray;
     }
 }

@@ -4,6 +4,9 @@
 
 namespace MITRE.QSD.L08 {
 
+    open Microsoft.Quantum.Diagnostics;
+    open Microsoft.Quantum.Arrays;
+    open MITRE.QSD.L03;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -26,8 +29,15 @@ namespace MITRE.QSD.L08 {
         //  1. Your implementation of register reversal in Lab 3, Exercise 2.
         //  2. The Microsoft.Quantum.Intrinsic.R1Frac() gate.
 
-        // TODO
-        fail "Not implemented.";
+        let len = Length(register);
+        for i in 0..len - 1 {
+            H(register[i]);
+            for j in 1 .. len - i - 1 {
+                Controlled R1Frac([register[i+j]], (1, j, register[i]));
+            }
+        }
+        E02_ReverseRegister(register);
+
     }
 
 
@@ -66,7 +76,20 @@ namespace MITRE.QSD.L08 {
         register : Qubit[],
         sampleRate : Double
     ) : Double {
-        // TODO
-        fail "Not implemented.";
+        let len = Length(register);
+        let N = 2 ^ len;
+        mutable frequency = 0.0;
+
+        Adjoint E01_QFT(register);
+        E02_ReverseRegister(register);
+        DumpMachine();
+        let results = MeasureEachZ(register[0 .. len - 1]);
+        mutable val = ResultArrayAsInt(results);
+        if (val >= N/2) {
+            set val = (N - val);
+        }
+        set frequency = ((IntAsDouble(val)) * sampleRate / IntAsDouble(2 ^ len));
+        ResetAll(register);
+        return frequency;
     }
 }

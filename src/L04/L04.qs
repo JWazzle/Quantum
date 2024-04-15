@@ -9,6 +9,7 @@
 
 namespace MITRE.QSD.L04 {
 
+    open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -33,8 +34,13 @@ namespace MITRE.QSD.L04 {
     /// A qubit that is entangled with another qubit in the state
     /// 1/√2(|00> + |11>).
     operation E01_SuperdenseEncode (buffer : Bool[], pairA : Qubit) : Unit {
-        // TODO
-        fail "Not implemented.";
+        if (buffer[1] == true) {
+            X(pairA);
+        }
+        
+        if (buffer[0] == true) {
+            Z(pairA);
+        }
     }
 
 
@@ -59,8 +65,16 @@ namespace MITRE.QSD.L04 {
     /// A classical bit array containing the two bits that were encoded in the
     /// entangled pair. Use false for 0 and true for 1.
     operation E02_SuperdenseDecode (pairA : Qubit, pairB : Qubit) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        mutable out = [false, size = 2];
+        CNOT(pairA, pairB);
+        H(pairA);
+        if (M(pairA) == One){
+            set out w/= 0 <- true;
+        }
+        if (M(pairB) == One){
+            set out w/= 1 <- true;
+        }
+        return out;
     }
 
 
@@ -100,8 +114,18 @@ namespace MITRE.QSD.L04 {
         bPublic : Bool,
         qubit: Qubit
     ) : Bool {
-        // TODO
-        fail "Not implemented.";
+        if (aSecret) {
+            X(qubit);
+        }
+        if (aPublic) {
+            H(qubit);
+        }
+        if (aPublic == bPublic) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 
@@ -130,8 +154,16 @@ namespace MITRE.QSD.L04 {
         bPublic : Bool,
         qubit: Qubit
     ) : (Bool, Bool) {
-        // TODO
-        fail "Not implemented.";
+        if bPublic {
+            H(qubit);
+        }
+        let out = M(qubit) == One ? true | false;
+        if (aPublic == bPublic) {
+            return (out, true);
+        }
+        else {
+            return (out, false);
+        }
     }
 
 
@@ -163,8 +195,8 @@ namespace MITRE.QSD.L04 {
         // this operation, so it can just be run backwards to decode the
         // logical qubit back into the original three unentangled qubits.
 
-        // TODO
-        fail "Not implemented.";
+        CNOT(original, spares[0]);
+        CNOT(original, spares[1]);
     }
 
 
@@ -196,8 +228,19 @@ namespace MITRE.QSD.L04 {
         // makes things easier. Don't forget to reset the qubits you allocate
         // back to the |0> state!
 
-        // TODO
-        fail "Not implemented.";
+        use qubit1 = Qubit();
+        use qubit2 = Qubit();
+
+        CNOT(register[0], qubit1);
+        CNOT(register[1], qubit1);
+        CNOT(register[0], qubit2);
+        CNOT(register[2], qubit2);
+
+        mutable result = [M(qubit1), M(qubit2)];
+
+        Reset(qubit1);
+        Reset(qubit2);
+        return result;
     }
 
 
@@ -229,8 +272,20 @@ namespace MITRE.QSD.L04 {
         // out to the console. You might want to consider printing the index
         // of the qubit you identified as broken to help with debugging.
 
-        // TODO
-        fail "Not implemented.";
+        let results = ResultArrayAsBoolArray(syndromeMeasurement);
+        if (syndromeMeasurement[0] == One){
+            if (syndromeMeasurement[1] == One) {
+                X(register[0]);
+            }
+            else {
+                X(register[1]);
+            }
+        }
+        else {
+            if (syndromeMeasurement[1] == One) {
+                X(register[2]);
+            }
+        } 
     }
 
 
@@ -260,8 +315,20 @@ namespace MITRE.QSD.L04 {
         original : Qubit,
         spares : Qubit[]
     ) : Unit is Adj {
-        // TODO
-        fail "Not implemented.";
+        H(spares[3]);
+        H(spares[4]);
+        H(spares[5]);
+        CNOT(original, spares[0]);
+        CNOT(original, spares[0]);
+        CNOT(spares[5], original);
+        CNOT(spares[5], spares[0]);
+        CNOT(spares[5], spares[2]);
+        CNOT(spares[4], original);
+        CNOT(spares[4], spares[1]);
+        CNOT(spares[4], spares[2]);
+        CNOT(spares[3], spares[0]);
+        CNOT(spares[3], spares[1]);
+        CNOT(spares[3], spares[2]);
     }
 
 

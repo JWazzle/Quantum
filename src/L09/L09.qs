@@ -140,8 +140,8 @@ namespace MITRE.QSD.L09 {
         //  - Use the ModularMultiplyByConstant operation above to multiply a
         //    qubit register by a constant under some modulus.
 
-        // TODO
-        fail "Not implemented.";
+        Controlled ModularMultiplyByConstant(output, (b, a, input));
+
     }
 
 

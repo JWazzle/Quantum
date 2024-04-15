@@ -70,7 +70,7 @@ namespace MITRE.QSD.Tests.L08 {
 
             Fact(
                 estimatedFreq < (actualFreq + TOLERANCE) and estimatedFreq > (actualFreq - TOLERANCE),
-                "Incorrect frequency."
+                $"Incorrect frequency. "
             )
         }
     }

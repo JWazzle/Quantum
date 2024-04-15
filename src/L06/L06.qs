@@ -72,8 +72,24 @@ namespace MITRE.QSD.L06 {
         op : ((Qubit[], Qubit[]) => Unit),
         input : Bool[]
     ) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        let arrLen = Length(input);
+        use inReg = Qubit[arrLen];
+        for i in 0 .. arrLen - 1 {
+            if (input[i]){
+                X(inReg[i]);
+            }
+        }
+        use outReg = Qubit[arrLen];
+        op(inReg, outReg);
+        mutable outBool = [false, size=arrLen];
+        for i in 0 .. arrLen - 1 {
+            if (M(outReg[i]) == One){
+                set outBool w/= i <- true;
+            }
+        }
+        ResetAll(inReg);
+        ResetAll(outReg);
+        return outBool;
     }
 
 
@@ -101,8 +117,20 @@ namespace MITRE.QSD.L06 {
         op : ((Qubit[], Qubit[]) => Unit),
         inputSize : Int
     ) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        use inReg = Qubit[inputSize];
+        ApplyToEach(H, inReg);
+        use outReg = Qubit[inputSize];
+        op(inReg, outReg);
+        ApplyToEach(H, inReg);
+        mutable outBool = [false, size=inputSize];
+        for i in 0 .. inputSize - 1 {
+            if (M(inReg[i]) == One){
+                set outBool w/= i <- true;
+            }
+        }
+        ResetAll(inReg);
+        ResetAll(outReg);
+        return outBool;
     }
 
 
@@ -136,8 +164,12 @@ namespace MITRE.QSD.L06 {
     /// a three-qubit register, it would be |100>. If the unit tests provide
     /// that result, then you've implemented it properly.
     operation C01_RightShiftBy1 (input : Qubit[], output : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Start at input[0]
+        for inputIndex in 0 .. Length(input) - 2 {
+            // Copy input[i] to output[i+1]
+            let outputIndex = inputIndex + 1;
+            CNOT(input[inputIndex], output[outputIndex]);
+        }
     }
 
 
@@ -171,7 +203,18 @@ namespace MITRE.QSD.L06 {
     /// table. Hint: you can do it by only using the X gate, and controlled
     /// variants of the X gate (CNOT and CCNOT).
     operation C02_SimonBB (input : Qubit[], output : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // 2nd output qubit same as 1st input qubit (rightmost)
+        CNOT(input[2], output[1]);
+
+        // 3rd (leftmost) output qubit 1 if even # of input 1's 
+        for i in 0 .. 2 {
+            CNOT(input[i], output[0]);
+        }
+
+        // 1st (rightmost) output qubit 1 if 000 or 110
+        X(output[2]);
+        CNOT(input[0], output[2]);
+        CNOT(input[1], output[2]);
+        CNOT(input[2], output[2]);
     }
 }
