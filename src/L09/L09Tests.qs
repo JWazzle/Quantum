@@ -154,7 +154,7 @@ namespace MITRE.QSD.Tests.L09 {
             }
             Fact(
                 numerator == trueNumerator,
-                $"You gave {numerator} / {denominator}, which doesn't match the expected convergent for {testNumerator} / {testDenominator}."
+                $"You gave {numerator} / {denominator}, which doesn't match the expected convergent for {testNumerator} / {testDenominator}. {trueNumerator} / {trueDenominator}"
             );
             Fact(
                 denominator == trueDenominator,

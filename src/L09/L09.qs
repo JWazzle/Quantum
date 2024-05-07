@@ -1,7 +1,7 @@
 // Quantum Software Development
 // Lab 9: Shor's Factorization Algorithm
 // Copyright 2024 The MITRE Corporation. All Rights Reserved.
-//
+
 // Due 4/24.
 //
 // Note: Use little endian ordering when storing and retrieving integers from
@@ -140,8 +140,18 @@ namespace MITRE.QSD.L09 {
         //  - Use the ModularMultiplyByConstant operation above to multiply a
         //    qubit register by a constant under some modulus.
 
-        Controlled ModularMultiplyByConstant(output, (b, a, input));
+        X(output[Length(output) - 1]);
 
+        let length = Length(input);
+        // for bits in x, if xi = 1, output*a^2^i mod b then output mod b
+        for i in 0 .. length - 1{
+            let exponent = 2^i;
+            let c = Microsoft.Quantum.Math.ExpModI(a, exponent, b);
+            // output*a^2^i mod b
+            Controlled ModularMultiplyByConstant([input[length - i - 1]], (b,c,output));
+            // output mod b
+            // ModularMultiplyByConstant(b,1,output);
+        }
     }
 
 
@@ -180,8 +190,32 @@ namespace MITRE.QSD.L09 {
         // function to measure a whole set of qubits and transform them into
         // their integer representation.
 
-        // TODO
-        fail "Not implemented.";
+        // Setup
+        // mutable n = 0;
+        // repeat {
+        //     set n += 1;
+        // }
+        // until 2^n >= N^2;
+        // use input = Qubit[n]; 
+        // use output = Qubit[n]; 
+        let n = Ceiling(Lg(IntAsDouble(numberToFactor)));
+        use input =  Qubit[n*2];
+        use output = Qubit[n];
+        
+        // Uniform
+        ApplyToEach(H, input);
+
+        // ModExp
+        E01_ModExp(guess, numberToFactor, input, output);
+
+        // Inverse QFT
+        Adjoint ApplyQFT(input);
+
+        // return X, 2^n
+        let X = Microsoft.Quantum.Measurement.MeasureInteger(input);
+        ResetAll(input);
+        ResetAll(output);
+        return (X, 2^(n*2));
     }
 
 
@@ -213,8 +247,41 @@ namespace MITRE.QSD.L09 {
         denominator : Int,
         denominatorThreshold : Int
     ) : (Int, Int) {
-        // TODO
-        fail "Not implemented.";
+        mutable P = numerator;
+        mutable Q = denominator;
+        mutable a = [0];
+        mutable r = P%Q;
+        mutable d = [1];
+        mutable m = [0];
+        mutable i = 0;
+        set m += [1];
+
+        while (d[i] < denominatorThreshold and r != 0){
+            set i += 1;
+            set P = Q;
+            set Q = r;
+            set a += [P/Q];
+            set r = P%Q;
+
+            if i>1 {
+                set m += [a[i]*m[i-1]+m[i-2]];
+                set d += [a[i]*d[i-1]+d[i-2]];
+            }
+            elif i == 1 {
+                set d += [a[i]*d[i-1]];
+            }
+            // Message($"i: {i}, P: {P}, Q: {Q}, r: {r}, a: {a[i]}, m: {m[i]}, d: {d[i]}");
+        }
+
+        if (d[i] >= denominatorThreshold){
+            return (m[i-1],d[i-1]);
+        }
+        elif (i == 0 or r == 0) {
+            return (m[i],d[i]);
+        }
+        else {
+            return (0,0);
+        }
     }
 
 
@@ -248,8 +315,11 @@ namespace MITRE.QSD.L09 {
         // Microsoft.Quantum.Math.GreatestCommonDivisorI()
         // function to calculate the GCD of two numbers.
 
-        // TODO
-        fail "Not implemented.";
+        let (num, denom) = E02_FindApproxPeriod(numberToFactor, guess);
+        Message($"{num} / {denom}");
+        let (newnum, newdenom) = E03_FindPeriodCandidate(num, denom, 2*Ceiling(Lg(IntAsDouble(numberToFactor + 1))));
+        Message($"{newnum} / {newdenom}");
+        return newdenom;
     }
 
 
@@ -281,7 +351,19 @@ namespace MITRE.QSD.L09 {
         guess : Int,
         period : Int
     ) : Int {
-        // TODO
-        fail "Not implemented.";
+        if (period % 2 != 0){
+            return -1;
+        }
+
+        if ((guess^(period/2)+1)%numberToFactor == 0){
+            return -2;
+        }
+        let attempt = Microsoft.Quantum.Math.GreatestCommonDivisorI(guess^(period/2)+1, numberToFactor); 
+        if (attempt > 1 and attempt < numberToFactor){
+            return attempt;
+        }
+        else {
+            return -2;
+        }
     }
 }
